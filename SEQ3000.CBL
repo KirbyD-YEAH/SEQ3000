@@ -29,7 +29,7 @@
        01  NEW-MASTER-RECORD.
            05  NM-EMPLOYEE-ID          PIC X(5).
            05  NM-EMPLOYEE-NAME        PIC X(30).
-           05  NM-DEPART-CODE          PIC X(10).
+           05  NM-DEPART-CODE          PIC X(5).
            05  NM-JOB-CLASS            PIC X(2).
            05  NM-ANNUAL-SALARY        PIC S9(5)V99.
            05  NM-VACATION-HOURS       PIC S9(3).
@@ -37,7 +37,7 @@
 
        FD  ERRTRAN3.
 
-       01  ERROR-TRANSACTION       PIC X(61).
+       01  ERROR-TRANSACTION       PIC X(50).
 
        WORKING-STORAGE SECTION.
 
@@ -66,14 +66,14 @@
            05  ET-MASTER-DATA.         
                10  ET-EMPLOYEE-ID          PIC X(5).
                10  ET-EMPLOYEE-NAME        PIC X(30).
-               10  ET-DEPART-CODE          PIC X(10).
+               10  ET-DEPART-CODE          PIC X(5).
                10  ET-JOB-CLASS            PIC X(2).
                10  ET-ANNUAL-SALARY        PIC S9(5)V99.
 
        01  EMPLOYEE-MASTER-RECORD.
            05  EM-EMPLOYEE-ID              PIC X(5).
            05  EM-EMPLOYEE-NAME            PIC X(30).
-           05  EM-DEPART-CODE              PIC X(10).
+           05  EM-DEPART-CODE              PIC X(5).
            05  EM-JOB-CLASS                PIC X(2).
            05  EM-ANNUAL-SALARY            PIC S9(5)V99.
            05  EM-VACATION-HOURS           PIC S9(3).
@@ -198,12 +198,12 @@
 
        410-APPLY-CHANGE-TRANSACTION.
 
-           IF ET-ITEM-DESC NOT = SPACE
-               MOVE ET-ITEM-DESC TO EM-ITEM-DESC.
-           IF ET-UNIT-COST NOT = ZERO
-               MOVE ET-UNIT-COST TO EM-UNIT-COST.
-           IF ET-UNIT-PRICE NOT = ZERO
-               MOVE ET-UNIT-PRICE TO EM-UNIT-PRICE.
-           IF ET-REORDER-POINT NOT = ZERO
-               MOVE ET-REORDER-POINT TO EM-REORDER-POINT.
+           IF ET-EMPLOYEE-NAME NOT = SPACE
+               MOVE ET-EMPLOYEE-NAME TO EM-EMPLOYEE-NAME.
+           IF ET-DEPART-CODE NOT = SPACE
+               MOVE ET-DEPART-CODE TO EM-DEPART-CODE.
+           IF ET-JOB-CLASS NOT = SPACE
+               MOVE ET-JOB-CLASS TO EM-JOB-CLASS.
+           IF ET-ANNUAL-SALARY NOT = ZEROES
+               MOVE ET-ANNUAL-SALARY TO EM-ANNUAL-SALARY.           
            SET NEED-TRANSACTION TO TRUE.
