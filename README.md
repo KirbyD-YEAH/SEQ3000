@@ -1,15 +1,21 @@
-# COBOL RPT6000
-___
+# COBOL EMPLOYEE SYSTEM
+
+---
 
 ## Overview
-___
-The **RPT6000** program is an enhanced COBOL reporting tool designed to process customer sales data and generate a structured, year-to-date 
-sales report organized by branch and sales representative.
 
-This version is once again expanding off the previous versions by introducing a Sales Representative Lookup Table, enhanced control break logic, and more efficient processing. It then produces a fully formatted report including customer-level detail, sales representative totals, branch totals, and grand totals. There are also calculated changes for dollar amount and percentage.
+---
+
+The **COBOL EMPLOYEE SYSTEM** is a multi-program COBOL project designed to create, maintain, and update employee records using both sequential and indexed file processing techniques.
+
+This system expands across multiple programs that work together to simulate real-world batch and online-style file maintenance. It includes initial file creation, sequential transaction processing, and indexed file maintenance with error handling. The programs demonstrate how employee data can be added, updated, deleted, and validated across different storage structures.
+
+The system produces updated employee master files while also capturing invalid transactions for auditing and debugging purposes.
 
 ## Table of Contents
-___
+
+---
+
 * [Key Functionalities](#key-functionalities)
 * [Tech Stack](#tech-stack)
 * [Installation](#installation)
@@ -19,127 +25,149 @@ ___
 * [Authors](#authors)
 
 ## Key Functionalities
-___
-### Multi-File Processing
 
-* Reads from:
+---
 
-  * **Customer Master File (CUSTMAST)**
-  * **Sales Representative File (SALESREP)**
-* Demonstrates handling and coordinating multiple sequential input files.
+### Multi-Program Architecture
 
-### Sales Representative Lookup Table
+* Includes three coordinated COBOL programs:
 
-* Loads sales rep data into an in-memory table using **OCCURS** and **INDEXED BY**.
-* Uses **SEARCH** to match and display sales rep names dynamically.
+  * **EMPIND01** – Creates an indexed employee master file from a sequential file
+  * **EMPIND02** – Maintains the indexed file using random access transactions
+  * **SEQ3000** – Processes transactions sequentially to produce a new master file
 
-### Control Break Processing (Multi-Level)
+* Demonstrates both batch and interactive-style processing approaches.
 
-* Detects and handles breaks for:
+### Sequential File Processing
 
-  * Sales Representative
-  * Branch
-  * Automatically prints:
+* Reads and processes:
 
-  * Sales rep totals
-  * Branch totals
-  * Final grand totals
+  * **OLDEMP (sequential master file)**
+  * **EMPTRAN (transaction file)**
 
-### EVALUATE-Based Control Flow
+* Uses classic merge/update logic to apply changes.
 
-* Uses the **EVALUATE TRUE** structure to simplify complex branching logic.
+### Indexed File Processing
+
+* Uses an indexed file (**EMPMASTI**) with:
+
+  * Random access (EMPIND02)
+  * Sequential access (EMPIND01)
+
+* Demonstrates:
+
+  * `READ ... INVALID KEY`
+  * `WRITE`, `REWRITE`, and `DELETE`
+
+### Transaction-Based File Maintenance
+
+* Supports three transaction types using 88-level condition names:
+
+  * `ADD-RECORD`
+  * `CHANGE-RECORD`
+  * `DELETE-RECORD`
+
+* Applies business rules to determine valid vs invalid operations.
+
+### Error Handling and Audit Trail
+
+* Writes invalid or failed transactions to:
+
+  * **ERRTRAN**
+  * **ERRTRAN3**
+
+* Uses file status codes and conditional checks to detect write failures.
+
+### Merge/Match Logic (SEQ3000)
+
+* Compares:
+
+  * Transaction file vs master file using key fields
+
 * Handles:
 
-  * First record initialization
-  * Control breaks
-  * End-of-file processing
+  * High values (end-of-file processing)
+  * Matching and non-matching records
+  * Controlled read sequencing using switches
 
 ### 88-Level Condition Names (Switches)
 
-* Improves readability and control flow using flags such as:
+* Improves readability and control flow with flags such as:
 
-  * `CUSTMAST-EOF`
-  * `SALESREP-EOF`
-  * `FIRST-RECORD-SWITCH`
+  * `TRANSACTION-EOF`
+  * `MASTER-FOUND`
+  * `ALL-RECORDS-PROCESSED`
+  * `NEED-TRANSACTION`
+  * `WRITE-MASTER`
 
-### Arithmetic Calculations with Error Handling
+### Record-Level Data Handling
 
-* Computes:
+* Processes structured employee data including:
 
-  * Sales change (amount)
-  * Sales change (percentage)
-* Uses:
-
-  * `COMPUTE ... ROUNDED`
-  * `ON SIZE ERROR`
-* Handles divide-by-zero cases with `"N/A"` or overflow indicators.
-
-### Accumulation and Roll-Up Totals
-
-* Maintains and rolls totals across levels:
-
-  * Customer → Sales Rep → Branch → Grand Total
-* Uses `ADD` and `INITIALIZE` for accumulation and reset logic.
-
-### Pagination and Report Formatting
-
-* Dynamically formats report output with:
-
-  * Page headers (date, time, page number)
-  * Column headings
-  * Line spacing control
-* Automatically handles page breaks.
+  * Employee ID
+  * Name
+  * Department Code
+  * Job Class
+  * Salary
+  * Vacation and Sick Hours
 
 ### Modular Program Structure
 
 * Organized into clearly defined paragraphs such as:
 
-  * `100-FORMAT-REPORT-HEADING`
-  * `200-LOAD-SALESREP-TABLE`
-  * `300-PREPARE-SALES-LINES`
-  * `355-PRINT-SALESREP-LINE`
-  * `360-PRINT-BRANCH-LINE`
-  * `500-PRINT-GRAND-TOTALS`
-* Uses **PERFORM** for structured, maintainable flow.
+  * `000-MAINTAIN-EMPLOYEE-FILE`
+  * `300-MAINTAIN-EMPLOYEE-RECORD`
+  * `330-MATCH-MASTER-TRAN`
+  * `340-WRITE-NEW-MASTER`
+  * `410-APPLY-CHANGE-TRANSACTION`
+
+* Uses **PERFORM** for structured and maintainable logic flow.
 
 ---
 
 ## Tech Stack
-___
+
+---
+
 * ![COBOL](https://img.shields.io/badge/COBOL-Enterprise-blue)
-* ![Visual Studio Code](https://img.shields.io/badge/VS_Code-007ACC.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
-* ![GitHub](https://img.shields.io/badge/GitHub-000000.svg?style=for-the-badge&logo=GitHub)
+* ![Visual Studio Code](https://img.shields.io/badge/VS_Code-007ACC.svg?style=for-the-badge\&logo=visual-studio-code\&logoColor=white)
+* ![GitHub](https://img.shields.io/badge/GitHub-000000.svg?style=for-the-badge\&logo=GitHub)
 
 ## Installation
-___
-1. Clone the repository to your local machine. (or just steal my code)
-2. Put the code into VS Code in your mainframe of choice
 
-## Running Output
-___
-![Code Running](assets/CodeRunning.png)
+---
+
+1. Clone the repository to your local machine.
+2. Load the programs into your COBOL-compatible environment or mainframe emulator
+3. Ensure all required input files (OLDEMP, EMPTRAN) are available
 
 ## Learning Outcomes
-___
- * Gained experience with COBOL file handling (sequential file processing)
- * Implemented control break logic for grouped reporting
- * Practiced data formatting and report generation in a legacy language
- * Applied arithmetic operations for business calculations (percent change, totals)
- * Improved understanding of modular programming using structured paragraphs
- * Developed skills in debugging and testing batch-style programs
- * Two-Level Summary Report: Expanded control break logic to handle multiple grouping levels (sales representative within branch), producing nested subtotals and a more detailed hierarchical report structure.
- * Switch Conditional Names (88-Level): Leveraged 88-level condition names as logical switches to improve readability and control program flow (e.g., EOF flags, first-record indicators).
- * EVALUATE Case Structure: Applied the EVALUATE statement as a case structure to streamline multi-branch decision logic, replacing complex nested IF statements.
- * SET TRUE/FALSE Statements: Used SET statements with condition names to explicitly control boolean-like flags, improving clarity and maintainability of program state management.
-  
+
+---
+
+* Gained experience with both sequential and indexed file processing in COBOL
+* Implemented transaction-driven file maintenance systems
+* Developed merge/update logic for batch processing (SEQ3000)
+* Practiced indexed file operations including READ, WRITE, REWRITE, and DELETE
+* Applied 88-level condition names to improve program readability and logic control
+* Built error handling mechanisms using file status codes and error files
+* Strengthened understanding of multi-program system design in COBOL
+* Learned differences between random and sequential access in real-world scenarios
+* Improved debugging and testing techniques for file-based batch programs
+
 ## Help
-___
-* Make sure compiler is running correctly.
-* Potentially re-clone repository
-* restart IDE
+
+---
+
+* Ensure all input files are correctly formatted and accessible (SPACING MATTERS)
+* Verify file organization types (sequential vs indexed) match program expectations
+* Check file status codes for hidden runtime errors
+* Restart your IDE or environment if file locks occur
 
 ## Authors
-___
+
+---
+
 **Kirby Dunker**
 
 <img src="https://github.com/KirbyD-YEAH.png" alt="Profile Picture" width="100" />
@@ -147,5 +175,8 @@ ___
 * **Kirby's GitHub Profile**: [KirbyD-YEAH](https://github.com/KirbyD-YEAH)
 * **Kirby's Email**: [brdunk02@wsc.edu](mailto:brdunk@wsc.edu)
 
+---
 
 [Back to the top](#overview)
+
+---
