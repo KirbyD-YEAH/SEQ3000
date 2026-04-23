@@ -1,171 +1,70 @@
-
        IDENTIFICATION DIVISION.
 
-       PROGRAM-ID.  EMPIND02.
+       PROGRAM-ID. EMPIND01.
 
        ENVIRONMENT DIVISION.
 
        INPUT-OUTPUT SECTION.
 
        FILE-CONTROL.
-
-           SELECT EMPTRAN  ASSIGN TO EMPTRAN.
-           SELECT EMPMASTI  ASSIGN TO EMPMASTI
+           SELECT OLDEMP ASSIGN TO OLDEMP.
+           SELECT EMPMASTI ASSIGN TO EMPMASTI
                            ORGANIZATION IS INDEXED
-                           ACCESS IS RANDOM
-                           RECORD KEY IS IR-EMPLOYEE-ID.
-           SELECT ERRTRAN  ASSIGN TO ERRTRAN
-                           FILE STATUS IS ERRTRAN-FILE-STATUS.
+                           ACCESS IS SEQUENTIAL
+                           RECORD KEY IS EM-EMPLOYEE-ID.
 
        DATA DIVISION.
 
        FILE SECTION.
 
-       FD  EMPTRAN.
+       FD  OLDEMP.
 
-       01  TRANSACTION-RECORD      PIC X(50).
+       01  SEQUENTIAL-RECORD-AREA  PIC X(57).
 
        FD  EMPMASTI.
 
-       01  EMPLOYEE-RECORD-AREA.
-           05  IR-EMPLOYEE-ID          PIC X(5).
-           05  FILLER              PIC X(52).
-
-       FD  ERRTRAN.
-
-       01  ERROR-TRANSACTION       PIC X(50).
+       01  INDEXED-RECORD-AREA.
+           05  EM-EMPLOYEE-ID          PIC X(5).
+           05  FILLER                  PIC X(52).
 
        WORKING-STORAGE SECTION.
 
        01  SWITCHES.
-           05  TRANSACTION-EOF-SWITCH  PIC X   VALUE "N".
-               88  TRANSACTION-EOF             VALUE "Y".
-           05  MASTER-FOUND-SWITCH     PIC X   VALUE "Y".
-               88  MASTER-FOUND                VALUE "Y".
-
-       01  FILE-STATUS-FIELDS.
-           05  ERRTRAN-FILE-STATUS     PIC XX.
-               88  ERRTRAN-SUCCESSFUL          VALUE "00".
-
-       01  EMPLOYEE-TRANSACTION.
-           05  ET-TRANSACTION-CODE     PIC X.
-               88  ADD-RECORD                 VALUE "A".
-               88  CHANGE-RECORD              VALUE "C".
-               88  DELETE-RECORD              VALUE "D".
-
-           05  ET-MASTER-DATA.
-               10  ET-EMPLOYEE-ID          PIC X(5).
-               10  ET-EMPLOYEE-NAME        PIC X(30).
-               10  ET-DEPART-CODE          PIC X(5).
-               10  ET-JOB-CLASS            PIC X(2).
-               10  ET-ANNUAL-SALARY        PIC S9(5)V99.
+           05  EMPMAST-EOF-SWITCH      PIC X    VALUE "N".
+               88  EMPMAST-EOF                  VALUE "Y".
 
        01  EMPLOYEE-MASTER-RECORD.
-           05  EM-EMPLOYEE-ID              PIC X(5).
-           05  EM-EMPLOYEE-NAME            PIC X(30).
-           05  EM-DEPART-CODE              PIC X(5).
-           05  EM-JOB-CLASS                PIC X(2).
-           05  EM-ANNUAL-SALARY            PIC S9(5)V99.
-           05  EM-VACATION-HOURS           PIC S9(3).
-           05  EM-SICK-HOURS               PIC S9(3)V99.
+           05  WS-EMPLOYEE-ID          PIC X(5).
+           05  FILLER                  PIC X(52).
 
        PROCEDURE DIVISION.
 
-       000-MAINTAIN-EMPLOYEE-FILE.
+       000-CREATE-EMPLOYEE-FILE.
 
-           OPEN INPUT  EMPTRAN
-                I-O    EMPMASTI
-                OUTPUT ERRTRAN.
-           PERFORM 300-MAINTAIN-EMPLOYEE-RECORD
-               UNTIL TRANSACTION-EOF.
-           CLOSE EMPTRAN
-                 EMPMASTI
-                 ERRTRAN.
+           OPEN INPUT  OLDEMP
+                OUTPUT EMPMASTI.
+           PERFORM 100-CREATE-EMPLOYEE-RECORD
+               UNTIL EMPMAST-EOF.
+           CLOSE OLDEMP
+                 EMPMASTI.
            STOP RUN.
 
-       300-MAINTAIN-EMPLOYEE-RECORD.
+       100-CREATE-EMPLOYEE-RECORD.
 
-           PERFORM 310-READ-EMPLOYEE-TRANSACTION.
-           IF NOT TRANSACTION-EOF
-               PERFORM 320-READ-EMPLOYEE-MASTER
-               IF DELETE-RECORD
-                   IF MASTER-FOUND
-                       PERFORM 330-DELETE-EMPLOYEE-RECORD
-                   ELSE
-                       PERFORM 380-WRITE-ERROR-TRANSACTION
-               ELSE IF ADD-RECORD
-                   IF MASTER-FOUND
-                       PERFORM 380-WRITE-ERROR-TRANSACTION
-                   ELSE
-                       PERFORM 340-ADD-EMPLOYEE-RECORD
-               ELSE IF CHANGE-RECORD
-                   IF MASTER-FOUND
-                       PERFORM 360-CHANGE-EMPLOYEE-RECORD
-                   ELSE
-                       PERFORM 380-WRITE-ERROR-TRANSACTION.
+           PERFORM 110-READ-SEQUENTIAL-RECORD.
+           IF NOT EMPMAST-EOF
+               PERFORM 120-WRITE-INDEXED-RECORD.
 
-       310-READ-EMPLOYEE-TRANSACTION.
+       110-READ-SEQUENTIAL-RECORD.
 
-           READ EMPTRAN INTO EMPLOYEE-TRANSACTION
+           READ OLDEMP INTO EMPLOYEE-MASTER-RECORD
                AT END
-                   SET TRANSACTION-EOF TO TRUE.
+                   SET EMPMAST-EOF TO TRUE.
 
-       320-READ-EMPLOYEE-MASTER.
+       120-WRITE-INDEXED-RECORD.
 
-           MOVE ET-EMPLOYEE-ID TO IR-EMPLOYEE-ID.
-           READ EMPMASTI INTO EMPLOYEE-MASTER-RECORD
+           WRITE INDEXED-RECORD-AREA FROM EMPLOYEE-MASTER-RECORD
                INVALID KEY
-                   MOVE "N" TO MASTER-FOUND-SWITCH
-               NOT INVALID KEY
-                   SET MASTER-FOUND TO TRUE.
-
-       330-DELETE-EMPLOYEE-RECORD.
-
-           DELETE EMPMASTI.
-
-       340-ADD-EMPLOYEE-RECORD.
-
-           MOVE ET-EMPLOYEE-ID TO EM-EMPLOYEE-ID.
-           MOVE ET-EMPLOYEE-NAME TO EM-EMPLOYEE-NAME.
-           MOVE ET-DEPART-CODE TO EM-DEPART-CODE.
-           MOVE ET-JOB-CLASS TO EM-JOB-CLASS.
-           MOVE ET-ANNUAL-SALARY TO EM-ANNUAL-SALARY.
-           MOVE ZEROES TO EM-VACATION-HOURS.
-           MOVE ZEROES TO EM-SICK-HOURS
-
-           PERFORM 350-WRITE-EMPLOYEE-RECORD.
-
-       350-WRITE-EMPLOYEE-RECORD.
-
-           WRITE EMPLOYEE-RECORD-AREA FROM EMPLOYEE-MASTER-RECORD
-               INVALID KEY
-                   DISPLAY "WRITE ERROR ON EMPMASTI FOR EMPLOYEE ID "
-                       IR-EMPLOYEE-ID
-                   SET TRANSACTION-EOF TO TRUE.
-
-       360-CHANGE-EMPLOYEE-RECORD.
-
-           IF ET-EMPLOYEE-NAME NOT = SPACE
-               MOVE ET-EMPLOYEE-NAME TO EM-EMPLOYEE-NAME.
-           IF ET-DEPART-CODE NOT = SPACE
-               MOVE ET-DEPART-CODE TO EM-DEPART-CODE.
-           IF ET-JOB-CLASS NOT = SPACE
-               MOVE ET-JOB-CLASS TO EM-JOB-CLASS.
-           IF ET-ANNUAL-SALARY NOT = ZEROES
-               MOVE ET-ANNUAL-SALARY TO EM-ANNUAL-SALARY.
-
-           PERFORM 370-REWRITE-EMPLOYEE-RECORD.
-
-       370-REWRITE-EMPLOYEE-RECORD.
-
-           REWRITE EMPLOYEE-RECORD-AREA FROM EMPLOYEE-MASTER-RECORD.
-
-       380-WRITE-ERROR-TRANSACTION.
-
-           WRITE ERROR-TRANSACTION FROM EMPLOYEE-TRANSACTION.
-           IF NOT ERRTRAN-SUCCESSFUL
-               DISPLAY "WRITE ERROR ON ERRTRAN FOR ITEM NUMBER "
-                   EM-EMPLOYEE-ID
-               DISPLAY "FILE STATUS CODE IS " ERRTRAN-FILE-STATUS
-               SET TRANSACTION-EOF TO TRUE.
-
+                   DISPLAY "WRITE ERROR ON EMPMAST FOR EMPLOYEE ID "
+                       EM-EMPLOYEE-ID
+                   SET EMPMAST-EOF TO TRUE.
