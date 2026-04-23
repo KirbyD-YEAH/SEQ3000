@@ -60,10 +60,10 @@
        01  EMPLOYEE-TRANSACTION.
            05  ET-TRANSACTION-CODE     PIC X.
                88  ADD-RECORD                 VALUE "A".
-               88  CHANGE-RECORD              VALUE "C".               
+               88  CHANGE-RECORD              VALUE "C".
                88  DELETE-RECORD              VALUE "D".
 
-           05  ET-MASTER-DATA.         
+           05  ET-MASTER-DATA.
                10  ET-EMPLOYEE-ID          PIC X(5).
                10  ET-EMPLOYEE-NAME        PIC X(30).
                10  ET-DEPART-CODE          PIC X(5).
@@ -101,14 +101,14 @@
 
        300-MAINTAIN-EMPLOYEE-RECORD.
 
-           IF NEED-TRANSACTION  
+           IF NEED-TRANSACTION
                 PERFORM 310-READ-EMPLOYEE-TRANSACTION
                 MOVE "N" TO NEED-TRANSACTION-SWITCH.
-           IF NEED-MASTER 
+           IF NEED-MASTER
                 PERFORM 320-READ-OLD-MASTER
                 MOVE "N" TO NEED-MASTER-SWITCH.
            PERFORM 330-MATCH-MASTER-TRAN
-           IF WRITE-MASTER 
+           IF WRITE-MASTER
                 PERFORM 340-WRITE-NEW-MASTER
                 MOVE "N" TO WRITE-MASTER-SWITCH.
 
@@ -205,5 +205,5 @@
            IF ET-JOB-CLASS NOT = SPACE
                MOVE ET-JOB-CLASS TO EM-JOB-CLASS.
            IF ET-ANNUAL-SALARY NOT = ZEROES
-               MOVE ET-ANNUAL-SALARY TO EM-ANNUAL-SALARY.           
+               MOVE ET-ANNUAL-SALARY TO EM-ANNUAL-SALARY.
            SET NEED-TRANSACTION TO TRUE.
